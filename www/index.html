@@ -30,38 +30,66 @@
             var notedata = {notelat:"", notelon:""};
             //this is mustache.js, which is a template, which is populated with the notedata
             var notetemplate = '<div id="map">Map Placeholder</div>';
-            //these are variables for the song URLS & positions
-            var track1= 'https://s3.amazonaws.com/Digit_Test/13+The+Sun.mp3';
-            var track1Lat= 40.725117;
-            var track1Lon= -73.941875;
             
-            var track2= 'https://s3.amazonaws.com/Digit_Test/09+You+and+Me.mp3';
-            var track2Lat= 40.726592;
-            var track2Lon= -73.941808;
-            
-            var track3= 'https://s3.amazonaws.com/Digit_Test/Got+You+On+My+Mind.mp3';
-            var track3Lat= 40.727535;
-            var track3Lon= -73.943889;
-            
-            var track4= 'https://s3.amazonaws.com/Digit_Test/01+Somebody+Help+Me.mp3';
-            var track4Lat= 40.727064;
-            var track4Lon= -73.9467;
-            
-            var track5= 'https://s3.amazonaws.com/Digit_Test/Drop+By+My+Place.mp3';
-            var track5Lat= 40.72573;
-            var track5Lon= -73.950884;
-            
-            var track6= 'https://s3.amazonaws.com/Digit_Test/18+Falling+(Twin+Peaks+Theme).mp3';
-            var track6Lat= 40.727657;
-            var track6Lon= -73.953019;
-
-            var track7= 'https://s3.amazonaws.com/Digit_Test/%E2%96%BA_First_Aid_Kit_Emmylou_The_Hype_Machine_Wxc3VfP7wKYu.128.mp3';
-            var track7Lat= 40.728454;
-            var track7Lon= -73.957365;
-            
-            var track8= 'https://s3.amazonaws.com/Digit_Test/You%27re+Still+Blowing+My+Mind.mp3';
-            var track8Lat= 40.72869;
-            var track8Lon= -73.959081;
+            //these are objects for each track         
+            var songs = {
+	            "track1" : {
+	            	name: 'track1',
+		            url: 'https://s3.amazonaws.com/Digit_Test/13+The+Sun.mp3',
+		            lat: 40.725117,
+		            lon: -73.941875
+	            },
+	            
+	            "track2" : {
+	            	name: 'track2',
+		            url: 'https://s3.amazonaws.com/Digit_Test/09+You+and+Me.mp3',
+		            lat: 40.726592,
+		            lon: -73.941808
+	            },
+	            
+	            "track3" : {
+	            	name: 'track3',
+		            url: 'https://s3.amazonaws.com/Digit_Test/Got+You+On+My+Mind.mp3',
+		            lat: 40.727535,
+		            lon: -73.943889
+	            },
+	            
+	            "track4" : {
+	            	name: 'track4',
+		            url: 'https://s3.amazonaws.com/Digit_Test/01+Somebody+Help+Me.mp3',
+		            lat: 40.727064,
+		            lon: -73.9467
+	            },
+	            
+	            "track5" : {
+	            	name: 'track5',
+		            url: 'https://s3.amazonaws.com/Digit_Test/Drop+By+My+Place.mp3',
+		            lat: 40.72573,
+		            lon: -73.950884
+	            },	    
+	            
+	            "track6" : {
+	            	name: 'track6',
+		            url: 'https://s3.amazonaws.com/Digit_Test/18+Falling+(Twin+Peaks+Theme).mp3',
+		            lat: 40.727657,
+		            lon: -73.953019
+	            },	
+	            
+	            "track7" : {
+	            	name: 'track7',
+		            url: 'https://s3.amazonaws.com/Digit_Test/%E2%96%BA_First_Aid_Kit_Emmylou_The_Hype_Machine_Wxc3VfP7wKYu.128.mp3',
+		            lat: 40.728454,
+		            lon: -73.957365
+	            },	
+	            
+	            "track8" : {
+	            	name: 'track8',
+		            url: 'https://s3.amazonaws.com/Digit_Test/You%27re+Still+Blowing+My+Mind.mp3',
+		            lat: 40.72869,
+		            lon: -73.959081
+	            },		            	            	            
+	                    
+            }
 
             
             //when the page loads, do this stuff...this is like void setup?
@@ -128,38 +156,49 @@
                 db.transaction(getDbNotes, onDbError, onDbSuccess);
             }
             
- 
+            //my_media['song.mp3'] = new Media();
+            
              //function to play music at certain points
             // Play audio
             //
-			function playAudio(url) {
+			function playAudio(trackObject) {
 				// Play the audio file at url
-				var my_media = new Media(url,
-				// success callback
-				function() {
-					console.log("playAudio():Audio Success");
-				},
-				// error callback
-				function(err) {
-					console.log("playAudio():Audio Error: "+err);
+				
+				trackObject.media = new Media(trackObject.url,
+					// success callback
+					function() {
+						console.log("playAudio():Audio Success");
+					},
+					// error callback
+					function(err) {
+						console.log("playAudio():Audio Error: "+err);
 				});
 
 				// Play audio
-				my_media.play();
+				trackObject.media.play();
 			}  
 			
 			// Stop audio
 			// 
-			function stopAudio() {
-            	if (my_media) {
-            	    my_media.stop();
+			function stopAudio(trackObject) {
+            	if (trackObject.media) {
+            	    trackObject.media.stop();
             	}
             }
 			                             
             //executed if there geolocation is available; sets variables from the googlemaps api
             function onGeoSuccess(position) {
-            	lat = position.coords.latitude;
-                lon = position.coords.longitude;
+	            //testing track 1
+            	lat = songs.track3.lat;
+                lon = songs.track3.lon;
+                
+                playAudio(songs.track2);
+            	
+            	// lat = position.coords.latitude;
+                // lon = position.coords.longitude;
+                
+
+                console.log(lat + " " + position.coords.latitude);
                 var currentposition = new google.maps.LatLng(lat,lon);
                 console.log("current position: " + currentposition);
                                     
@@ -173,48 +212,59 @@
                 var marker = new google.maps.Marker({
                 	position: currentposition,
                     map: map
-                });
+                });                     
+                
                                 
                 //MIX TRACKS + LOCATIONS
-                if ((Math.abs(track1Lat - lat) <= .0001) && (Math.abs(track1Lon - lon) <= .0001)){
-	            	stopAudio();
-	            	playAudio(track1);
-                }
-                
-                 if ((Math.abs(track2Lat - lat) <= .0001) && (Math.abs(track2Lon - lon) <= .0001)){
-	            	stopAudio();
-	            	playAudio(track2);
+                if ((Math.abs(songs.track1.lat - lat) <= .0001) && (Math.abs(songs.track1.lon - lon) <= .0001)){
+	            	console.log("inside track 1!")
+	            	playAudio(songs.track1);
+                } else {
+	                //alert('hi!')
                 }
 
-                if ((Math.abs(track3Lat - lat) <= .0001) && (Math.abs(track3Lon - lon) <= .0001)){
-	            	stopAudio();
-	            	playAudio(track3);
+                if ((Math.abs(songs.track2.lat - lat) <= .0001) && (Math.abs(songs.track2.lon - lon) <= .0001)){
+	                console.log("inside track 2!")
+	                stopAudio(songs.track1);
+	            	playAudio(songs.track2);
                 }
                 
-                if ((Math.abs(track4Lat - lat) <= .0001) && (Math.abs(track4Lon - lon) <= .0001)){
-	            	stopAudio();
-	            	playAudio(track4);
+                if ((Math.abs(songs.track3.lat - lat) <= .0001) && (Math.abs(songs.track3.lon - lon) <= .0001)){
+	                console.log("inside track 3!")
+	                stopAudio(songs.track2);
+	            	playAudio(songs.track3);
                 }
                 
-                if ((Math.abs(track5Lat - lat) <= .0001) && (Math.abs(track5Lon - lon) <= .0001)){
-	            	stopAudio();
-	            	playAudio(track5);
-                }
-            
-                if ((Math.abs(track6Lat - lat) <= .0001) && (Math.abs(track6Lon - lon) <= .0001)){
-	            	stopAudio();
-	            	playAudio(track6);
-                }
+                if ((Math.abs(songs.track4.lat - lat) <= .0001) && (Math.abs(songs.track4.lon - lon) <= .0001)){
+	                console.log("inside track 4!")
+	                stopAudio(songs.track3);
+	            	playAudio(songs.track4);
+                }   
                 
-                if ((Math.abs(track7Lat - lat) <= .0001) && (Math.abs(track7Lon - lon) <= .0001)){
-	            	stopAudio();
-	            	playAudio(track7);
-                }
+                if ((Math.abs(songs.track5.lat - lat) <= .0001) && (Math.abs(songs.track5.lon - lon) <= .0001)){
+	                console.log("inside track 5!")
+	                stopAudio(songs.track4);
+	            	playAudio(songs.track5);
+                }    
                 
-                if ((Math.abs(track8Lat - lat) <= .0001) && (Math.abs(track8Lon - lon) <= .0001)){
-	            	stopAudio();
-	            	playAudio(track8);
-                }
+                if ((Math.abs(songs.track6.lat - lat) <= .0001) && (Math.abs(songs.track6.lon - lon) <= .0001)){
+	                console.log("inside track 6!")
+	                stopAudio(songs.track5);
+	            	playAudio(songs.track6);
+                }  
+                
+                if ((Math.abs(songs.track7.lat - lat) <= .0001) && (Math.abs(songs.track7.lon - lon) <= .0001)){
+	                console.log("inside track 7!")
+	                stopAudio(songs.track6);
+	            	playAudio(songs.track7);
+                }    
+                
+                if ((Math.abs(songs.track8.lat - lat) <= .0001) && (Math.abs(songs.track8.lon - lon) <= .0001)){
+	                console.log("inside track 8!")
+	                stopAudio(songs.track7);
+	            	playAudio(songs.track8);
+                }                                
+                                                       
             }
             
 
