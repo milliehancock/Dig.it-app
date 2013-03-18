@@ -17,7 +17,7 @@
         <!--script file references-->
         <script src="js/jquery.js"></script>
         <script src="js/jquery.mobile-1.2.0.js"></script>
-        <script src="cordova.ios.js"></script>
+        <script src="cordova.js"></script>
         <script src="js/mustache.js"></script>
         <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
         <link href="http://code.google.com/apis/maps/documentation/javascript/examples/default.css" rel="stylesheet" type="text/css" />
@@ -267,8 +267,7 @@
                                                        
             }
             
-
-                                
+                            
             //executed if there geolocation is not available; sends popup to the user telling them to turn on GPS stuff
             function onGeoError(error) {
             	if( error == 1) {

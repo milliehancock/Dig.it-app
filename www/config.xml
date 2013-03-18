@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+    <widget xmlns = "http://www.w3.org/ns/widgets"
+        xmlns:gap = "http://phonegap.com/ns/1.0"
+        id        = "com.example.pgbuild"
+        versionCode="10" 
+        version   = "1.0.0">
+
+    <!-- versionCode is optional and Android only -->
+
+    <name>Dig.it V1</name>
+
+    <description>
+		Take and store digital notes.
+    </description>
+
+    <author href="http://ameliahancock.com" email="amelia.a.hancock@gmail.com">
+		Amelia Hancock
+    </author>
+
+    <preference name="phonegap-version" value="2.2.0" />
+    <preference name="webviewbounce" value="false" />
+			
+    <icon src="img/icon.png" />
+    <gap:splash src="img/splash.png" />
+
+</widget>
