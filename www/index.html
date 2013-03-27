@@ -18,7 +18,7 @@
         <!--script file references-->
         <script src="js/jquery.js"></script>
         <script src="js/jquery.mobile-1.2.0.js"></script>
-        <script src="cordova.js"></script>
+        <script src="cordova.ios.js"></script>
         <script src="js/mustache.js"></script>
         <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
         <link href="http://code.google.com/apis/maps/documentation/javascript/examples/default.css" rel="stylesheet" type="text/css" />
@@ -44,7 +44,7 @@
 		            lat: 40.725117,
 		            lon: -73.941875
 	            },
-	            
+
 	            "track2" : {
 	            	name: 'track2',
 		            url: 'https://s3.amazonaws.com/Digit_Test/09+You+and+Me.mp3',
@@ -171,7 +171,8 @@
 		            url: 'https://s3.amazonaws.com/Digit_Test/03+Mirando+a+las+Muchachas.m4a',
 		            lat: 40.706702,
 		            lon: -73.921766
-	            },		            		                    
+	            },	
+	            		                    
             }
 
 //////////////////////////////////////////////////////LOADING PAGE FUNCTIONS///////////////////////////////////////////////////////
@@ -181,13 +182,10 @@
             $(document).on("pageinit", function(){
             	
             	//create the template, populate html with the mustache template, etc.
-            	$('#MixMain').live('pagecreate', function(event){
-	            	if(itemindex >= 0) {
-		            	item = dbresults.rows.item(itemindex);
-		            	notedata = {notetitle:item.notetitle, notedetail:item.notedetail, imagesource:item.imagesource, notelat:item.notelat, notelon:item.notelon};
-		            }  
+            	$('#MixMain').live('pagecreate', function(event){ 
 		            var html = Mustache.to_html(notetemplate, notedata);
 		            $("#notedetailcontent").html(html);
+		            
 		        }); 
 		        
 		                       
@@ -213,15 +211,17 @@
                 if(networkstate == "none"){
                 	$(".offline").css("visibility","visible");
                 }
+                
             }
             
             
 //////////////////////////////////////////////////////AUDIO FUNCTIONALITY///////////////////////////////////////////////////////
             
             // Play audio
-			function playAudio(trackObject) {
+			function playAudio(songs) {
 				// Play the audio file at url	
-				trackObject.media = new Media(trackObject.url,
+				console.log('just here')
+				songs.media = new Media(songs.url,
 					
 					// success callback
 					function() {
@@ -232,15 +232,17 @@
 					function(err) {
 						console.log("playAudio():Audio Error: "+err);
 				});
-				
+								console.log('after here')
 				// Play audio
-				trackObject.media.play();
+				songs.media.play();
+				
+				//trackObject.media.play();
 			}  
 			
 			// Stop audio
-			function stopAudio(trackObject) {
-            	if (trackObject.media) {
-            	    trackObject.media.stop();
+			function stopAudio(songs) {
+            	if (songs.media) {
+            	    songs.media.stop();
             	}
             }
 
@@ -251,8 +253,9 @@
             	
             	lat = position.coords.latitude;
                 lon = position.coords.longitude;
-                
-                console.log(lat + " " + position.coords.latitude);
+
+
+                //console.log(lat + " " + position.coords.latitude);
                 var currentposition = new google.maps.LatLng(lat,lon);
                 console.log("current position: " + currentposition);
                                     
@@ -270,13 +273,15 @@
                 
  
 //////////////////////////////////////////////////////MIX TRACKS AND LOCATIONS///////////////////////////////////////////////////////
+                
                                
+                
                 //MIX TRACKS + LOCATIONS
                 if ((Math.abs(songs.track1.lat - lat) <= .0001) && (Math.abs(songs.track1.lon - lon) <= .0001)){
 	            	console.log("inside track 1!")
 	            	playAudio(songs.track1);
                 } else {
-	                //alert('hi!')
+	                alert('hi!')
                 }
 
                 if ((Math.abs(songs.track2.lat - lat) <= .0001) && (Math.abs(songs.track2.lon - lon) <= .0001)){
@@ -324,6 +329,9 @@
                 if ((Math.abs(songs.track1b.lat - lat) <= .0001) && (Math.abs(songs.track1b.lon - lon) <= .0001)){
 	                console.log("inside track 1b!")
 	            	playAudio(songs.track1b);
+	            	
+	            	} else {
+	                alert('hi!')
                 }  
                 
                 if ((Math.abs(songs.track2b.lat - lat) <= .0001) && (Math.abs(songs.track2b.lon - lon) <= .0001)){
@@ -384,7 +392,8 @@
 	                console.log("inside track 11b!")
 	                stopAudio(songs.track10b);
 	            	playAudio(songs.track11b);
-                }                                                                             
+                }  
+                                                                                          
             }
 
 //////////////////////////////////////////////////////ERROR FUNCTIONALITY///////////////////////////////////////////////////////
@@ -428,8 +437,8 @@
         <!--Main Mix page-->
         <div data-role="page" id="MixMain">
             <div data-role="header" class="logo">
-                <img src="img/logo.png"/>
-                <a href="#main"></a>
+            	<img src="img/logo.png"/>
+            	<a href="#main" data-icon="home"></a>
             </div>
             <div id="notedetailcontent" data-role="content">
             </div>
