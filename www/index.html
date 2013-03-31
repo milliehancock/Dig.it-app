@@ -34,6 +34,11 @@
 
 //////////////////////////////////////////////////////SONG OBJECTS///////////////////////////////////////////////////////
             
+            //this is so it doesn't double play audio
+            var masterAudio = {
+	            isPlaying: false,
+	            currentTrack: null
+	        }
             //these are objects for each track         
             var songs = {
 	            
@@ -219,31 +224,43 @@
 //////////////////////////////////////////////////////AUDIO FUNCTIONALITY///////////////////////////////////////////////////////
             
             // Play audio
-			function playAudio(songs) {
-				// Play the audio file at url	
-				console.log('just here')
-				songs.media = new Media(songs.url,
-					
-					// success callback
-					function() {
-						console.log("playAudio():Audio Success");
-					},
-					
-					// error callback
-					function(err) {
-						console.log("playAudio():Audio Error: "+err);
-				});
-								console.log('after here')
-				// Play audio
-				songs.media.play();
+			function playAudio(song) {
+				// stop currently playing song as long as it is not this song
+				if (masterAudio.currentTrack && masterAudio.currentTrack !== song.name) {       
+	                console.log("Stopping  " + masterAudio.currentTrack);
+					stopAudio(songs[masterAudio.currentTrack]);
+				}
 				
-				//trackObject.media.play();
+				if (masterAudio.isPlaying == false) {								
+					// Play the audio file at url	
+					console.log('just here')
+					song.media = new Media(song.url,
+						// success callback
+						function() {
+							console.log("playAudio():Audio Success");
+						},
+						
+						// error callback
+						function(err) {
+							console.log("playAudio():Audio Error: "+err);
+						}
+					);
+	                song.media.play();
+	                masterAudio.isPlaying = true;
+	                // If songs => songs.track1, then songs.name is 'track1'
+	                masterAudio.currentTrack = song.name;
+	                console.log("Setting masterAudio.currentTrack to " + song.name);
+                }
+				
+				console.log('after here');
+				
 			}  
 			
 			// Stop audio
 			function stopAudio(songs) {
             	if (songs.media) {
             	    songs.media.stop();
+            	    masterAudio.isPlaying = false; 
             	}
             }
 
@@ -284,31 +301,24 @@
                 	position: currentposition,
                     map: map
                 }); 
-               
-                //testing to see if i can hard-code markers in song positions 
-                /*
-                var marker = new google.maps.Marker({
-                	position: songs.track1.lat,
-                    map: map
-                });  */                   
+                               
             
                 //MIX TRACKS + LOCATIONS
                 if ((Math.abs(songs.track1.lat - lat) <= .0001) && (Math.abs(songs.track1.lon - lon) <= .0001)){
 	            	console.log("inside track 1!")
-	            	playAudio(songs.track1);
+		            playAudio(songs.track1);
+	            	
                 } else {
 	                //alert('hi!')
                 }
 
                 if ((Math.abs(songs.track2.lat - lat) <= .0001) && (Math.abs(songs.track2.lon - lon) <= .0001)){
 	                console.log("inside track 2!")
-	                stopAudio(songs.track1);
 	            	playAudio(songs.track2);
                 }
                 
                 if ((Math.abs(songs.track3.lat - lat) <= .0001) && (Math.abs(songs.track3.lon - lon) <= .0001)){
 	                console.log("inside track 3!")
-	                stopAudio(songs.track2);
 	            	playAudio(songs.track3);
                 }
                 
@@ -458,9 +468,11 @@
             <div data-role="header" class="logo">
             	<img src="img/logo.png"/>
             	<a href="#main" data-icon="home"></a>
+
             </div>
             <div id="notedetailcontent" data-role="content">
             </div>
+            
         	<!--hard-coded directions-->    
             <!--STEVE-->  
             <div data-role="collapsible">
