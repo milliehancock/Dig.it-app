@@ -9,6 +9,38 @@ var notedata = {notelat:"", notelon:""};
 //this is mustache.js, which is a template, which is populated with the notedata
 var notetemplate = '<div id="map">Map Placeholder</div>';
 
+//Compass Variables/setup
+// create our namespace
+var RocknCoder = RocknCoder || {};
+
+// event handlers for the compass stuff,
+// one for updating the header text
+// the other for rotating the compass
+RocknCoder.Compass = (function () {
+	var lastHeading = -1,
+		// cache the jQuery selectors
+		$headText = $("header > h1"),
+		$compass = $("#compass"),
+		// displays the degree
+		updateHeadingText = function (event, heading) {
+			event.preventDefault();
+			$headText.html(heading + "&deg;");
+			return false;
+		},
+		// adjusts the rotation of the compass
+		updateCompass = function (event, heading) {
+			event.preventDefault();
+			// to make the compass dial point the right way
+			var rotation = 360 - heading,
+				rotateDeg = 'rotate(' + rotation + 'deg)';
+			// TODO: fix - this code only works on webkit browsers, not wp7
+			$compass.css('-webkit-transform', rotateDeg);
+			return false;
+		};
+	// bind both of the event handlers to the "newHeading" event
+	$("body").bind("newHeading", updateCompass).bind("newHeading", updateHeadingText);
+}());
+
 //////////////////////////////////////////////////////SONG OBJECTS///////////////////////////////////////////////////////
             
             //this is so it doesn't double play audio
@@ -198,222 +230,239 @@ var notetemplate = '<div id="map">Map Placeholder</div>';
             }
             
             
+//////////////////////////////////////////////////////COMPASS FUNCTIONALITY///////////////////////////////////////////////////////
+// hook the compass watch
+// normally I would un-hook an event, but this is a quick tutorial
+document.addEventListener('deviceready', function () {
+	RocknCoder.Compass.watchId = navigator.compass.watchHeading(function (heading) {
+		// only magnetic heading works universally on iOS and Android
+		// round off the heading then trigger newHeading event for any listeners
+		var newHeading = Math.round(heading.magneticHeading);
+		$("body").trigger("newHeading", [newHeading]);
+	}, function (error) {
+		// if we get an error, show its code
+		alert("Compass error: " + error.code);
+	}, {frequency : 100});
+});
 //////////////////////////////////////////////////////AUDIO FUNCTIONALITY///////////////////////////////////////////////////////
             
-            // Play audio
-			function playAudio(song) {
-				// stop currently playing song as long as it is not this song
-				if (masterAudio.currentTrack && masterAudio.currentTrack !== song.name) {       
-	                console.log("Stopping  " + masterAudio.currentTrack);
-					stopAudio(songs[masterAudio.currentTrack]);
-				}
-				
-				if (masterAudio.isPlaying == false) {								
-					// Play the audio file at url	
-					console.log('just here')
-					song.media = new Media(song.url,
-						// success callback
-						function() {
-							console.log("playAudio():Audio Success");
-						},
-						
-						// error callback
-						function(err) {
-							console.log("playAudio():Audio Error: "+err);
-						}
-					);
-	                song.media.play();
-	                masterAudio.isPlaying = true;
-	                // If songs => songs.track1, then songs.name is 'track1'
-	                masterAudio.currentTrack = song.name;
-	                console.log("Setting masterAudio.currentTrack to " + song.name);
-                }
-				
-				console.log('after here');
-				
-			}  
+// Play audio
+function playAudio(song) {
+	// stop currently playing song as long as it is not this song
+	if (masterAudio.currentTrack && masterAudio.currentTrack !== song.name) {       
+        console.log("Stopping  " + masterAudio.currentTrack);
+		stopAudio(songs[masterAudio.currentTrack]);
+	}
+	
+	if (masterAudio.isPlaying == false) {								
+		// Play the audio file at url	
+		console.log('just here')
+		song.media = new Media(song.url,
+			// success callback
+			function() {
+				console.log("playAudio():Audio Success");
+			},
 			
-			// Stop audio
-			function stopAudio(songs) {
-            	if (songs.media) {
-            	    songs.media.stop();
-            	    masterAudio.isPlaying = false; 
-            	}
-            }
+			// error callback
+			function(err) {
+				console.log("playAudio():Audio Error: "+err);
+			}
+		);
+        song.media.play();
+        masterAudio.isPlaying = true;
+        // If songs => songs.track1, then songs.name is 'track1'
+        masterAudio.currentTrack = song.name;
+        console.log("Setting masterAudio.currentTrack to " + song.name);
+    }
+	
+	console.log('after here');
+	
+}  
+
+// Stop audio
+function stopAudio(songs) {
+	if (songs.media) {
+	    songs.media.stop();
+	    masterAudio.isPlaying = false; 
+	}
+}
 
 //////////////////////////////////////////////////////MAP FUNCTIONALITY///////////////////////////////////////////////////////
-	                             
-            //executed if there geolocation is available; sets variables from the googlemaps api
-            function onGeoSuccess(position) {
-            	//alert.sendLocation({lat:position.coords.latitude, lon:position.coords.longitude};
-            	lat = position.coords.latitude;
-                lon = position.coords.longitude;
-                //alert(lat + "," + lon);
-                /*
-                //this is stuff i'm adding attempting to update the location
-                var latLng = new Array();
-                latLng[0] = lat;
-                latLng[1] = lon;
-                
-                //console.log(lat + " " + position.coords.latitude);
-                */
-                var currentposition = new google.maps.LatLng(lat,lon);
-               
-                //map.currentposition.push(latLng);
-                
-                console.log("current position: " + currentposition);
-                                    
-
-                
-                var mapoptions = {
-                	zoom: 12,
-                    center: currentposition,
-                    mapTypeId: google.maps.MapTypeId.ROADMAP
-                };
-                
-                //Create the Google Map, set options                    
-                var map = new google.maps.Map(document.getElementById("map"), mapoptions);   
-                                   
-                var marker = new google.maps.Marker({
-                	position: currentposition,
-                    map: map
-                }); 
-                               
-            
-                //MIX TRACKS + LOCATIONS
-                //make the .0001 a variable so i can adjust for testing
-                if ((Math.abs(songs.track1.lat - lat) <= .0001) && (Math.abs(songs.track1.lon - lon) <= .0001)){
-	            	console.log("inside track 1!")
-		            playAudio(songs.track1);
-		            alert('You found Track 1!');
-	            	
-                } else {
-	                //alert('hi!')
-                }
-
-                if ((Math.abs(songs.track2.lat - lat) <= .0001) && (Math.abs(songs.track2.lon - lon) <= .0001)){
-	                console.log("inside track 2!")
-	            	playAudio(songs.track2);
-	            	alert('You found Track 2!');
-                }
-                
-                if ((Math.abs(songs.track3.lat - lat) <= .0001) && (Math.abs(songs.track3.lon - lon) <= .0001)){
-	                console.log("inside track 3!")
-	            	playAudio(songs.track3);
-	            	alert('You found Track 3!');
-                }
-                
-                if ((Math.abs(songs.track4.lat - lat) <= .0001) && (Math.abs(songs.track4.lon - lon) <= .0001)){
-	                console.log("inside track 4!")
-	            	playAudio(songs.track4);
-	            	alert('You found Track 4!');
-                }   
-                
-                if ((Math.abs(songs.track5.lat - lat) <= .0001) && (Math.abs(songs.track5.lon - lon) <= .0001)){
-	                console.log("inside track 5!")
-	            	playAudio(songs.track5);
-	            	alert('You found Track 5!');
-                }    
-                
-                if ((Math.abs(songs.track6.lat - lat) <= .0001) && (Math.abs(songs.track6.lon - lon) <= .0001)){
-	                console.log("inside track 6!")
-	            	playAudio(songs.track6);
-	            	alert('You found Track 6!');
-                }  
-                
-                if ((Math.abs(songs.track7.lat - lat) <= .0001) && (Math.abs(songs.track7.lon - lon) <= .0001)){
-	                console.log("inside track 7!")
-	            	playAudio(songs.track7);
-	            	alert('You found Track 7!');
-                }    
-                
-                if ((Math.abs(songs.track8.lat - lat) <= .0001) && (Math.abs(songs.track8.lon - lon) <= .0001)){
-	                console.log("inside track 8!")
-	            	playAudio(songs.track8);
-	            	alert('You found Track 8 (end of mix)!');
-                }  
-                
-                if ((Math.abs(songs.track1b.lat - lat) <= .0001) && (Math.abs(songs.track1b.lon - lon) <= .0001)){
-	                console.log("inside track 1b!")
-	            	playAudio(songs.track1b);
-	            	alert('You found Song 1!');
-	            	
-	            	} else {
-	                //alert('hi!')
-                }  
-                
-                if ((Math.abs(songs.track2b.lat - lat) <= .0001) && (Math.abs(songs.track2b.lon - lon) <= .0001)){
-	                console.log("inside track 2b!")
-	            	playAudio(songs.track2b);
-	            	alert('You found Song 2!');
-                }   
-                
-                if ((Math.abs(songs.track3b.lat - lat) <= .0001) && (Math.abs(songs.track3b.lon - lon) <= .0001)){
-	                console.log("inside track 3b!")
-	            	playAudio(songs.track3b);
-	            	alert('You found Song 3!');
-                } 
-                
-                if ((Math.abs(songs.track4b.lat - lat) <= .0001) && (Math.abs(songs.track4b.lon - lon) <= .0001)){
-	                console.log("inside track 4b!")
-	            	playAudio(songs.track4b);
-	            	alert('You found Song 4!');
-                }           
-                
-                if ((Math.abs(songs.track5b.lat - lat) <= .0001) && (Math.abs(songs.track5b.lon - lon) <= .0001)){
-	                console.log("inside track 5b!")
-	            	playAudio(songs.track5b);
-	            	alert('You found Song 5!');
-                }                         
-                
-                if ((Math.abs(songs.track6b.lat - lat) <= .0001) && (Math.abs(songs.track6b.lon - lon) <= .0001)){
-	                console.log("inside track 6b!")
-	            	playAudio(songs.track6b);
-	            	alert('You found Song 6!');
-                }                                                                                             
+                     
+//executed if there geolocation is available; sets variables from the googlemaps api
+function onGeoSuccess(position) {
+	//alert.sendLocation({lat:position.coords.latitude, lon:position.coords.longitude};
+	lat = position.coords.latitude;
+    lon = position.coords.longitude;
+    //alert(lat + "," + lon);
+    /*
+    //this is stuff i'm adding attempting to update the location
+    var latLng = new Array();
+    latLng[0] = lat;
+    latLng[1] = lon;
+    
+    //console.log(lat + " " + position.coords.latitude);
+    */
+    var currentposition = new google.maps.LatLng(lat,lon);
+   
+    //map.currentposition.push(latLng);
+    
+    console.log("current position: " + currentposition);
                         
-                if ((Math.abs(songs.track7b.lat - lat) <= .0001) && (Math.abs(songs.track7b.lon - lon) <= .0001)){
-	                console.log("inside track 7b!")
-	            	playAudio(songs.track7b);
-	            	alert('You found Song 7!');
-                }   
-                
-                if ((Math.abs(songs.track8b.lat - lat) <= .0001) && (Math.abs(songs.track8b.lon - lon) <= .0001)){
-	                console.log("inside track 8b!")
-	            	playAudio(songs.track8b);
-	            	alert('You found Song 8!');
-                }            
-                
-                if ((Math.abs(songs.track9b.lat - lat) <= .0001) && (Math.abs(songs.track9b.lon - lon) <= .0001)){
-	                console.log("inside track 9b!")
-	            	playAudio(songs.track9b);
-	            	alert('You found Song 9!');
-                }                    
-                
-                if ((Math.abs(songs.track10b.lat - lat) <= .0001) && (Math.abs(songs.track10b.lon - lon) <= .0001)){
-	                console.log("inside track 10b!")
-	            	playAudio(songs.track10b);
-	            	alert('You found Song 10!');
-                }            
-                
-                if ((Math.abs(songs.track11b.lat - lat) <= .0001) && (Math.abs(songs.track11b.lon - lon) <= .0001)){
-	                console.log("inside track 11b!")
-	            	playAudio(songs.track11b);
-	            	alert('You found Song 11(end of mix)!');
-                }  
-                                                                                          
-            }
+
+    
+    var mapoptions = {
+    	zoom: 12,
+        center: currentposition,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+    
+    //Create the Google Map, set options                    
+    var map = new google.maps.Map(document.getElementById("map"), mapoptions);   
+                       
+    var marker = new google.maps.Marker({
+    	position: currentposition,
+        map: map
+    }); 
+                   
+
+    //MIX TRACKS + LOCATIONS
+    //make the .0001 a variable so i can adjust for testing
+    if ((Math.abs(songs.track1.lat - lat) <= .0001) && (Math.abs(songs.track1.lon - lon) <= .0001)){
+    	console.log("inside track 1!")
+        playAudio(songs.track1);
+        alert('You found Track 1!');
+    	
+    } else {
+        //alert('hi!')
+    }
+
+    if ((Math.abs(songs.track2.lat - lat) <= .0001) && (Math.abs(songs.track2.lon - lon) <= .0001)){
+        console.log("inside track 2!")
+    	playAudio(songs.track2);
+    	alert('You found Track 2!');
+    }
+    
+    if ((Math.abs(songs.track3.lat - lat) <= .0001) && (Math.abs(songs.track3.lon - lon) <= .0001)){
+        console.log("inside track 3!")
+    	playAudio(songs.track3);
+    	alert('You found Track 3!');
+    }
+    
+    if ((Math.abs(songs.track4.lat - lat) <= .0001) && (Math.abs(songs.track4.lon - lon) <= .0001)){
+        console.log("inside track 4!")
+    	playAudio(songs.track4);
+    	alert('You found Track 4!');
+    }   
+    
+    if ((Math.abs(songs.track5.lat - lat) <= .0001) && (Math.abs(songs.track5.lon - lon) <= .0001)){
+        console.log("inside track 5!")
+    	playAudio(songs.track5);
+    	alert('You found Track 5!');
+    }    
+    
+    if ((Math.abs(songs.track6.lat - lat) <= .0001) && (Math.abs(songs.track6.lon - lon) <= .0001)){
+        console.log("inside track 6!")
+    	playAudio(songs.track6);
+    	alert('You found Track 6!');
+    }  
+    
+    if ((Math.abs(songs.track7.lat - lat) <= .0001) && (Math.abs(songs.track7.lon - lon) <= .0001)){
+        console.log("inside track 7!")
+    	playAudio(songs.track7);
+    	alert('You found Track 7!');
+    }    
+    
+    if ((Math.abs(songs.track8.lat - lat) <= .0001) && (Math.abs(songs.track8.lon - lon) <= .0001)){
+        console.log("inside track 8!")
+    	playAudio(songs.track8);
+    	alert('You found Track 8 (end of mix)!');
+    }  
+    
+    if ((Math.abs(songs.track1b.lat - lat) <= .0001) && (Math.abs(songs.track1b.lon - lon) <= .0001)){
+        console.log("inside track 1b!")
+    	playAudio(songs.track1b);
+    	alert('You found Song 1!');
+    	
+    	} else {
+        //alert('hi!')
+    }  
+    
+    if ((Math.abs(songs.track2b.lat - lat) <= .0001) && (Math.abs(songs.track2b.lon - lon) <= .0001)){
+        console.log("inside track 2b!")
+    	playAudio(songs.track2b);
+    	alert('You found Song 2!');
+    }   
+    
+    if ((Math.abs(songs.track3b.lat - lat) <= .0001) && (Math.abs(songs.track3b.lon - lon) <= .0001)){
+        console.log("inside track 3b!")
+    	playAudio(songs.track3b);
+    	alert('You found Song 3!');
+    } 
+    
+    if ((Math.abs(songs.track4b.lat - lat) <= .0001) && (Math.abs(songs.track4b.lon - lon) <= .0001)){
+        console.log("inside track 4b!")
+    	playAudio(songs.track4b);
+    	alert('You found Song 4!');
+    }           
+    
+    if ((Math.abs(songs.track5b.lat - lat) <= .0001) && (Math.abs(songs.track5b.lon - lon) <= .0001)){
+        console.log("inside track 5b!")
+    	playAudio(songs.track5b);
+    	alert('You found Song 5!');
+    }                         
+    
+    if ((Math.abs(songs.track6b.lat - lat) <= .0001) && (Math.abs(songs.track6b.lon - lon) <= .0001)){
+        console.log("inside track 6b!")
+    	playAudio(songs.track6b);
+    	alert('You found Song 6!');
+    }                                                                                             
             
-            $("#liveLocationStream_lat").text(lat); //dollar sign for jquery
-            $("#liveLocationStream_lon").text(lon);
+    if ((Math.abs(songs.track7b.lat - lat) <= .0001) && (Math.abs(songs.track7b.lon - lon) <= .0001)){
+        console.log("inside track 7b!")
+    	playAudio(songs.track7b);
+    	alert('You found Song 7!');
+    }   
+    
+    if ((Math.abs(songs.track8b.lat - lat) <= .0001) && (Math.abs(songs.track8b.lon - lon) <= .0001)){
+        console.log("inside track 8b!")
+    	playAudio(songs.track8b);
+    	alert('You found Song 8!');
+    }            
+    
+    if ((Math.abs(songs.track9b.lat - lat) <= .0001) && (Math.abs(songs.track9b.lon - lon) <= .0001)){
+        console.log("inside track 9b!")
+    	playAudio(songs.track9b);
+    	alert('You found Song 9!');
+    }                    
+    
+    if ((Math.abs(songs.track10b.lat - lat) <= .0001) && (Math.abs(songs.track10b.lon - lon) <= .0001)){
+        console.log("inside track 10b!")
+    	playAudio(songs.track10b);
+    	alert('You found Song 10!');
+    }            
+    
+    if ((Math.abs(songs.track11b.lat - lat) <= .0001) && (Math.abs(songs.track11b.lon - lon) <= .0001)){
+        console.log("inside track 11b!")
+    	playAudio(songs.track11b);
+    	alert('You found Song 11(end of mix)!');
+    }  
+                                                                              
+}
+
+//$("#liveLocationStream_lat").text(lat); //dollar sign for jquery
+//$("#liveLocationStream_lon").text(lon);
+$("#liveLocationStream_lat").html(lat); //dollar sign for jquery
+$("#liveLocationStream_lon").html(lon);
+
 
 //////////////////////////////////////////////////////ERROR FUNCTIONALITY///////////////////////////////////////////////////////
-            
-                            
-            //executed if there geolocation is not available; sends popup to the user telling them to turn on GPS stuff
-            function onGeoError(error) {
-            	if( error == 1) {
-                	alert('Turn on Geolocation services.');
-                }
-            }
+
+                
+//executed if there geolocation is not available; sends popup to the user telling them to turn on GPS stuff
+function onGeoError(error) {
+	if( error == 1) {
+    	alert('Turn on Geolocation services.');
+    }
+}
 
