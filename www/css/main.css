@@ -1,6 +1,7 @@
-.logo {
-	text-align: center;
+body {
+background-color:#fffde6;
 }
+
 
 .offline {
 	visibility: hidden;
@@ -8,21 +9,66 @@
 	font-style: italic;
 }
 
-#map {
-	width: 100%;
-	height: 200px;
+
+#compass {
+	
+	position:absolute;
+	text-align: center;
+    margin-left:10px;
+    margin-right: 10px;
+    margin-bottom: 438px;
+    margin-top: 30px;
+	width: 300px;
+	height: 300px;
+	display:none;
 }
 
-#noteimage {
-	width: 200px;
-	height: 200px;
-	display: none;
+#play {
+	position:absolute;
+	text-align: center;
+    margin-left:10px;
+    margin-right: 10px;
+    margin-bottom: 438px;
+    margin-top: 30px;
+	width: 300px;
+	height: 300px;
 }
 
-/* the initial rotation value */
-#compass
-{
-	transform:rotate(0deg); /* in case someone creates a compliant browser */
-	-ms-transform:rotate(0deg); /* WP7 */
-	-webkit-transform:rotate(0deg); /* iOS and Android */
+#data {
+	position:absolute;
+	text-align: left;
+    margin-left:10px;
+    margin-right: 10px;
+    margin-bottom: 100px;
+    margin-top: 323px;
+	width: 300px;
+	height: 300px;
+
 }
+
+#route {
+
+}
+
+#route1 {
+	position:absolute;
+	text-align: center;
+    margin-left:7px;
+    margin-right: 10px;
+    margin-bottom: 100px;
+    margin-top: 370px;
+	width: 300px;
+}
+
+#route2, #route3, #route4, #route5, #route6 {
+	position:absolute;
+	text-align: center;
+    margin-left:7px;
+    margin-right: 10px;
+    margin-bottom: 100px;
+    margin-top: 370px;
+	width: 300px;
+	display:none;
+}
+
+

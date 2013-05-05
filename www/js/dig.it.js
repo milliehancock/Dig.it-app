@@ -1,7 +1,3 @@
-// next two lines for JS-Lint
-"use strict";
-var $, navigator, alert, document;
-
 //this is for the database and geolocation
 var db, dbresults, itemindex, lat, lon;
 //this is for the data that populates the notetemplate
@@ -9,241 +5,197 @@ var notedata = {notelat:"", notelon:""};
 //this is mustache.js, which is a template, which is populated with the notedata
 var notetemplate = '<div id="map">Map Placeholder</div>';
 
-//Compass Variables/setup
-// create our namespace
-var RocknCoder = RocknCoder || {};
-
-// event handlers for the compass stuff,
-// one for updating the header text
-// the other for rotating the compass
-RocknCoder.Compass = (function () {
-	var lastHeading = -1,
-		// cache the jQuery selectors
-		$headText = $("header > h1"),
-		$compass = $("#compass"),
-		// displays the degree
-		updateHeadingText = function (event, heading) {
-			event.preventDefault();
-			$headText.html(heading + "&deg;");
-			return false;
-		},
-		// adjusts the rotation of the compass
-		updateCompass = function (event, heading) {
-			event.preventDefault();
-			// to make the compass dial point the right way
-			var rotation = 360 - heading,
-				rotateDeg = 'rotate(' + rotation + 'deg)';
-			// TODO: fix - this code only works on webkit browsers, not wp7
-			$compass.css('-webkit-transform', rotateDeg);
-			return false;
-		};
-	// bind both of the event handlers to the "newHeading" event
-	$("body").bind("newHeading", updateCompass).bind("newHeading", updateHeadingText);
-}());
-
 //////////////////////////////////////////////////////SONG OBJECTS///////////////////////////////////////////////////////
             
-            //this is so it doesn't double play audio
-            var masterAudio = {
-	            isPlaying: false,
-	            currentTrack: null
-	        }
-            //these are objects for each track         
-            var songs = {
-	            
-	            //STEVE'S MIX
-	            "track1" : {
-	            	name: 'track1',
-		            url: 'https://s3.amazonaws.com/Digit_Test/13+The+Sun.mp3',
-		            lat: 40.725117,
-		            lon: -73.941875
-	            },
+//this is so it doesn't double play audio
+var masterAudio = {
+    isPlaying: false,
+    currentTrack: null
+}
+//these are objects for each track         
+var songs = {
+    
+    //STEVE'S MIX
+    "track1" : {
+    	name: 'track1',
+        url: 'https://s3.amazonaws.com/Digit_Test/13+The+Sun.mp3',
+        lat: 40.725117,
+        lon: -73.941875
+    },
 
-	            "track2" : {
-	            	name: 'track2',
-		            url: 'https://s3.amazonaws.com/Digit_Test/09+You+and+Me.mp3',
-		            lat: 40.726592,
-		            lon: -73.941808
-	            },
-	            
-	            "track3" : {
-	            	name: 'track3',
-		            url: 'https://s3.amazonaws.com/Digit_Test/Got+You+On+My+Mind.mp3',
-		            lat: 40.727535,
-		            lon: -73.943889
-	            },
-	            
-	            "track4" : {
-	            	name: 'track4',
-		            url: 'https://s3.amazonaws.com/Digit_Test/01+Somebody+Help+Me.mp3',
-		            lat: 40.727064,
-		            lon: -73.9467
-	            },
-	            
-	            "track5" : {
-	            	name: 'track5',
-		            url: 'https://s3.amazonaws.com/Digit_Test/Drop+By+My+Place.mp3',
-		            lat: 40.72573,
-		            lon: -73.950884
-	            },	    
-	            
-	            "track6" : {
-	            	name: 'track6',
-		            url: 'https://s3.amazonaws.com/Digit_Test/18+Falling+(Twin+Peaks+Theme).mp3',
-		            lat: 40.727657,
-		            lon: -73.953019
-	            },	
-	            
-	            "track7" : {
-	            	name: 'track7',
-		            url: 'https://s3.amazonaws.com/Digit_Test/%E2%96%BA_First_Aid_Kit_Emmylou_The_Hype_Machine_Wxc3VfP7wKYu.128.mp3',
-		            lat: 40.728454,
-		            lon: -73.957365
-	            },	
-	            
-	            "track8" : {
-	            	name: 'track8',
-		            url: 'https://s3.amazonaws.com/Digit_Test/You%27re+Still+Blowing+My+Mind.mp3',
-		            lat: 40.72869,
-		            lon: -73.959081
-	            },
-	            
-	            //SARAH H'S MIX
-	            
-	            "track1b" : {
-	            	name: 'track1b',
-		            url: 'https://s3.amazonaws.com/Digit_Test/Lil+Mama+-+Lip+Gloss.mp3',
-		            lat: 40.726202,
-		            lon: -73.940585
-	            },	
-	
-	            "track2b" : {
-	            	name: 'track2b',
-		            url: 'https://s3.amazonaws.com/Digit_Test/02+Slow+It+Down+Ft.+Fabolous.mp3',
-		            lat: 40.723031,
-		            lon: -73.939061
-	            },		
-	            
-	            "track3b" : {
-	            	name: 'track3b',
-		            url: 'https://s3.amazonaws.com/Digit_Test/French+Montana+-+Freaks+(Explicit)+ft.+Nicki+Minaj.MP3',
-		            lat: 40.720356,
-		            lon: -73.937849
-	            },	
-	            
-	            "track4b" : {
-	            	name: 'track4b',
-		            url: 'https://s3.amazonaws.com/Digit_Test/Mesmerize.mp3',
-		            lat: 40.718176,
-		            lon: -73.936905
-	            },	
-	            
-	            "track5b" : {
-	            	name: 'track5b',
-		            url: 'https://s3.amazonaws.com/Digit_Test/%E2%96%B6_01_Suit_Tie_feat_JAY_Z_01_Suit__26_Tie__28feat._JAY_Z_29.mp3',
-		            lat: 40.714671,
-		            lon: -73.935295
-	            },		         
-	            
-	            "track6b" : {
-	            	name: 'track6b',
-		            url: 'https://s3.amazonaws.com/Digit_Test/%E2%96%B6_Good_Kush_Alcohol_Bitches_Love_Me_Feat_Drake_x_Future_Prod_By_Mike_Will_Made_It_CDQ_Lil_Wayne_Feat._Future__26_Drake___Goo.mp3',
-		            lat: 40.714663,
-		            lon: -73.930618
-	            },		               	            
-	            
-	            "track7b" : {
-	            	name: 'track7b',
-		            url: 'https://s3.amazonaws.com/Digit_Test/%E2%96%BA_Lady_Money_The_Hype_Machine_gNDtwbFPy9X7.128.mp3',
-		            lat: 40.71424,
-		            lon: -73.927088
-	            },	
-	            
-	            "track8b" : {
-	            	name: 'track8b',
-		            url: 'https://s3.amazonaws.com/Digit_Test/BlowMyHigh.mp3',
-		            lat: 40.713403,
-		            lon: -73.924212
-	            },	
-	            
-	            "track9b" : {
-	            	name: 'track9b',
-		            url: 'https://s3.amazonaws.com/Digit_Test/01+Phantom+%5BProd.+Sammsonite+and+Stricknine%5D.mp3',
-		            lat: 40.711069,
-		            lon: -73.923161
-	            },		            	            	            	                           		            	            	            
-	            
-	            "track10b" : {
-	            	name: 'track10b',
-		            url: 'https://s3.amazonaws.com/Digit_Test/Project+pat+-+Chickenhead.mp3',
-		            lat: 40.709239,
-		            lon: -73.922313
-	            },
-	            
-	            "track11b" : {
-	            	name: 'track11b',
-		            url: 'https://s3.amazonaws.com/Digit_Test/03+Mirando+a+las+Muchachas.m4a',
-		            lat: 40.706702,
-		            lon: -73.921766
-	            },	
-	            		                    
-            }
+    "track2" : {
+    	name: 'track2',
+        url: 'https://s3.amazonaws.com/Digit_Test/09+You+and+Me.mp3',
+        lat: 40.726592,
+        lon: -73.941808
+    },
+    
+    "track3" : {
+    	name: 'track3',
+        url: 'https://s3.amazonaws.com/Digit_Test/Got+You+On+My+Mind.mp3',
+        lat: 40.727535,
+        lon: -73.943889
+    },
+    
+    "track4" : {
+    	name: 'track4',
+        url: 'https://s3.amazonaws.com/Digit_Test/01+Somebody+Help+Me.mp3',
+        lat: 40.727064,
+        lon: -73.9467
+    },
+    
+    "track5" : {
+    	name: 'track5',
+        url: 'https://s3.amazonaws.com/Digit_Test/Drop+By+My+Place.mp3',
+        lat: 40.72573,
+        lon: -73.950884
+    },	    
+    
+    "track6" : {
+    	name: 'track6',
+        url: 'https://s3.amazonaws.com/Digit_Test/18+Falling+(Twin+Peaks+Theme).mp3',
+        lat: 40.727657,
+        lon: -73.953019
+    },	
+    
+    "track7" : {
+    	name: 'track7',
+        url: 'https://s3.amazonaws.com/Digit_Test/%E2%96%BA_First_Aid_Kit_Emmylou_The_Hype_Machine_Wxc3VfP7wKYu.128.mp3',
+        lat: 40.728454,
+        lon: -73.957365
+    },	
+    
+    "track8" : {
+    	name: 'track8',
+        url: 'https://s3.amazonaws.com/Digit_Test/You%27re+Still+Blowing+My+Mind.mp3',
+        lat: 40.72869,
+        lon: -73.959081
+    },
+    
+    //SARAH H'S MIX
+    
+    "track1b" : {
+    	name: 'track1b',
+        url: 'https://s3.amazonaws.com/Digit_Test/Lil+Mama+-+Lip+Gloss.mp3',
+        lat: 40.726202,
+        lon: -73.940585
+    },	
+
+    "track2b" : {
+    	name: 'track2b',
+        url: 'https://s3.amazonaws.com/Digit_Test/02+Slow+It+Down+Ft.+Fabolous.mp3',
+        lat: 40.723031,
+        lon: -73.939061
+    },		
+    
+    "track3b" : {
+    	name: 'track3b',
+        url: 'https://s3.amazonaws.com/Digit_Test/French+Montana+-+Freaks+(Explicit)+ft.+Nicki+Minaj.MP3',
+        lat: 40.720356,
+        lon: -73.937849
+    },	
+    
+    "track4b" : {
+    	name: 'track4b',
+        url: 'https://s3.amazonaws.com/Digit_Test/Mesmerize.mp3',
+        lat: 40.718176,
+        lon: -73.936905
+    },	
+    
+    "track5b" : {
+    	name: 'track5b',
+        url: 'https://s3.amazonaws.com/Digit_Test/%E2%96%B6_01_Suit_Tie_feat_JAY_Z_01_Suit__26_Tie__28feat._JAY_Z_29.mp3',
+        lat: 40.714671,
+        lon: -73.935295
+    },		         
+    
+    "track6b" : {
+    	name: 'track6b',
+        url: 'https://s3.amazonaws.com/Digit_Test/%E2%96%B6_Good_Kush_Alcohol_Bitches_Love_Me_Feat_Drake_x_Future_Prod_By_Mike_Will_Made_It_CDQ_Lil_Wayne_Feat._Future__26_Drake___Goo.mp3',
+        lat: 40.714663,
+        lon: -73.930618
+    },		               	            
+    
+    "track7b" : {
+    	name: 'track7b',
+        url: 'https://s3.amazonaws.com/Digit_Test/%E2%96%BA_Lady_Money_The_Hype_Machine_gNDtwbFPy9X7.128.mp3',
+        lat: 40.71424,
+        lon: -73.927088
+    },	
+    
+    "track8b" : {
+    	name: 'track8b',
+        url: 'https://s3.amazonaws.com/Digit_Test/BlowMyHigh.mp3',
+        lat: 40.713403,
+        lon: -73.924212
+    },	
+    
+    "track9b" : {
+    	name: 'track9b',
+        url: 'https://s3.amazonaws.com/Digit_Test/01+Phantom+%5BProd.+Sammsonite+and+Stricknine%5D.mp3',
+        lat: 40.711069,
+        lon: -73.923161
+    },		            	            	            	                           		            	            	            
+    
+    "track10b" : {
+    	name: 'track10b',
+        url: 'https://s3.amazonaws.com/Digit_Test/Project+pat+-+Chickenhead.mp3',
+        lat: 40.709239,
+        lon: -73.922313
+    },
+    
+    "track11b" : {
+    	name: 'track11b',
+        url: 'https://s3.amazonaws.com/Digit_Test/03+Mirando+a+las+Muchachas.m4a',
+        lat: 40.706702,
+        lon: -73.921766
+    },	
+    		                    
+}
 
 //////////////////////////////////////////////////////LOADING PAGE FUNCTIONS///////////////////////////////////////////////////////
 
             
-            //when the page loads, do this stuff...
-            $(document).on("pageinit", function(){
-            	
-            	//create the template, populate html with the mustache template, etc.
-            	$('#MixMain').live('pagecreate', function(event){ 
-		            var html = Mustache.to_html(notetemplate, notedata);
-		            $("#notedetailcontent").html(html);
-		            
-		        }); 
-		        
-		                       
-                //listen for the new note, find geolocation, and update position of the map navigator to current location -- also executes two functions to see if geolocation is available
-                $("#MixMain").live("pageshow", function(){
-                	//navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError);
-                	navigator.geolocation.watchPosition(onGeoSuccess, onGeoError, { maximumAge: 3000, enableHighAccuracy: true });
-                	if(itemindex >= 0){
-	                	//$("#noteimage").css("display", "block");
-                	}
-                });
-
-            });
-                                
-           
-            //look up init function so you know what this does...
-            function init() {
-            	document.addEventListener("deviceready", onDeviceReady, false);
-            }
-                                
-            //function to see if the device is on. if not, css changes to reflect 'offline' state
-            function onDeviceReady() {
-            	var networkstate = navigator.connection.type;
-                if(networkstate == "none"){
-                	$(".offline").css("visibility","visible");
-                }
-                
-            }
-            
-            
-//////////////////////////////////////////////////////COMPASS FUNCTIONALITY///////////////////////////////////////////////////////
-// hook the compass watch
-// normally I would un-hook an event, but this is a quick tutorial
-document.addEventListener('deviceready', function () {
-	RocknCoder.Compass.watchId = navigator.compass.watchHeading(function (heading) {
-		// only magnetic heading works universally on iOS and Android
-		// round off the heading then trigger newHeading event for any listeners
-		var newHeading = Math.round(heading.magneticHeading);
-		$("body").trigger("newHeading", [newHeading]);
-	}, function (error) {
-		// if we get an error, show its code
-		alert("Compass error: " + error.code);
-	}, {frequency : 100});
+//when the page loads, do this stuff...
+$(document).on('pageinit','#page1', function(){
+	alert('hi!');
 });
+
+$(document).ready(function () {
+	navigator.geolocation.watchPosition(onGeoSuccess, onGeoError, { maximumAge: 3000, enableHighAccuracy: true });
+});
+
+
+//create the template, populate html with the mustache template, etc.
+$('#MixMain').live('pagecreate', function(event){ 
+    var html = Mustache.to_html(notetemplate, notedata);
+    $("#notedetailcontent").html(html);
+    
+}); 
+
+               
+//listen for the new note, find geolocation, and update position of the map navigator to current location -- also executes two functions to see if geolocation is available
+$("#page1").live("pageshow", function(){
+	//navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError);
+	navigator.geolocation.watchPosition(onGeoSuccess, onGeoError, { maximumAge: 3000, enableHighAccuracy: true });
+	if(itemindex >= 0){
+    	//$("#noteimage").css("display", "block");
+	}
+});
+                
+//function to see if the device is on. if not, css changes to reflect 'offline' state
+window.onDeviceReady = function() {
+	var networkstate = navigator.connection.type;
+	if(networkstate == "none"){
+		$(".offline").css("visibility","visible");
+	}
+/* 	navigator.geolocation.watchPosition(onGeoSuccess, onGeoError, { maximumAge: 3000, enableHighAccuracy: true }); */
+	alert('device ready!');
+}
+
+
+//////////////////////////////////////////////////////COMPASS FUNCTIONALITY///////////////////////////////////////////////////////
+
 //////////////////////////////////////////////////////AUDIO FUNCTIONALITY///////////////////////////////////////////////////////
             
 // Play audio
@@ -291,7 +243,7 @@ function stopAudio(songs) {
                      
 //executed if there geolocation is available; sets variables from the googlemaps api
 function onGeoSuccess(position) {
-	//alert.sendLocation({lat:position.coords.latitude, lon:position.coords.longitude};
+	//alert.sendLocation({lat:position.coords.latitude, lon:position.coords.longitude});
 	lat = position.coords.latitude;
     lon = position.coords.longitude;
     //alert(lat + "," + lon);
@@ -447,13 +399,12 @@ function onGeoSuccess(position) {
     	playAudio(songs.track11b);
     	alert('You found Song 11(end of mix)!');
     }  
-                                                                              
-}
-
-//$("#liveLocationStream_lat").text(lat); //dollar sign for jquery
+    //$("#liveLocationStream_lat").text(lat); //dollar sign for jquery
 //$("#liveLocationStream_lon").text(lon);
-$("#liveLocationStream_lat").html(lat); //dollar sign for jquery
-$("#liveLocationStream_lon").html(lon);
+alert("success!")
+	jQuery("#liveLocationStream_lat").html(lat); //dollar sign for jquery
+	$("#liveLocationStream_lon").html("lon");
+}
 
 
 //////////////////////////////////////////////////////ERROR FUNCTIONALITY///////////////////////////////////////////////////////
@@ -461,6 +412,7 @@ $("#liveLocationStream_lon").html(lon);
                 
 //executed if there geolocation is not available; sends popup to the user telling them to turn on GPS stuff
 function onGeoError(error) {
+alert("error geo")
 	if( error == 1) {
     	alert('Turn on Geolocation services.');
     }
