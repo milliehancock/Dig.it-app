@@ -34,7 +34,7 @@ var songs = {
     "track4" : {
     	name: 'track4',
         //url: 'https://s3.amazonaws.com/Digit_Test/01+Somebody+Help+Me.mp3',
-        url: 'music/Somebody_Help_Me.mp3';
+        url: 'music/Somebody_Help_Me.mp3',
         lat: 40.730064,
         lon: -73.999561
     },
@@ -53,19 +53,37 @@ var songs = {
         lon: -73.994315
     },
 }	
-    
+
+// heading = number between 0 and 360
+// location = {x: LATITUDE, y: LONGITUDE}
+// destination = {x: LATITUDE, y: LONGITUDE}
+var findAngle = function (heading_degrees, location, destination) {
+ // Turn the heading degrees into a unit vector
+ var headingV = $V([1,0]).rotate(heading_degrees*(Math.PI/180), $V([0,0]));
+ // turn both location and destination into vector objects
+ var locationV = $V([location.x, location.y]);
+ var destinationV = $V([destination.x, destination.y]);
+ // Find the difference between locationV and destinationV
+ var differenceV = destinationV.subtract(locationV);
+ // Calculate the angle from your current heading to destination.
+ var angle = headingV.angleFrom(differenceV) * (189/Math.PI);
+ 
 /*
-function calcAngle(x1, x2, y1, y2)
-		{
-		calcAngle = Math.atan2(x1-x2,y1-y2)*(180/Math.PI);
-		if(calcAngle < 0)	
-			calcAngle = Math.abs(calcAngle);
-		else
-			calcAngle = 360 - calcAngle;		
-		return calcAngle;
-		}
-		
+ // if we are facing north!
+ if (heading_degrees >= 270 || heading_degress <= 90) {
+ 	// if the destination is farther west
+	 if (destination.y - location.y <= 0) {
+		 angle + Math.PI;
+	 } 
+ } else {
+	 if (destination.y - location.y <= 0) {
+		 
+	 }
+ }
 */
+ 
+ return angle;
+}
 
 // create our namespace
 var RocknCoder = RocknCoder || {};
@@ -79,7 +97,7 @@ RocknCoder.Compass = (function () {
 		// displays the degree in the heading text
 		updateHeadingText = function (event, heading) {
 			event.preventDefault();
-			$headText.html(heading + "&deg;"); 
+/* 			$headText.html(heading + "&deg;");  */
 			return false;
 		},
 		// adjusts the rotation of the compass
@@ -88,14 +106,13 @@ RocknCoder.Compass = (function () {
 			// to make the compass dial point north
 			var rotation = 360 - heading;
 			
-			/*
 			if (lat !== 'undefined' && lon !== 'undefined') {
-				// difference from where you are to "next track"
-				diffx = lat - songs.track2.lat;
-				diffy = lon - songs.track2.lon;
-				calcAngle(0,1,diffx, diffy);
+				var angle = findAngle(heading, {x: lat, y: lon}, {x: 40.724332, y: -73.955112});
+				// this works if the target is to the left of the phone.
+				// otherwise we need to add the angle to 360.
+				// but how to detect it.....
+				rotation = 360 - angle;
 			}
-			*/
 
 			var rotateDeg = 'rotate(' + rotation + 'deg)';
 			// TODO: fix - this code only works on webkit browsers, not wp7
@@ -141,18 +158,14 @@ function onGeoSuccess(position) {
     if ((Math.abs(songs.track1.lat - lat) <= .0001) && (Math.abs(songs.track1.lon - lon) <= .0001)){
     	console.log("inside track 1!")
         playAudio(songs.track1);
-        alert('You found Track 1!');
-        /*
+        alert('You found Track 1!');       
         $('#route1').show();
         $('#route2').hide();
 		$('#route3').hide();
         $('#route4').hide();
         $('#route5').hide();
-        $('#route6').hide();
-        */
-    	
-    } else {
-        //alert('hi!')
+        $('#route6').hide();    
+
     }
 
     //TRACK 2
@@ -217,14 +230,13 @@ function onGeoSuccess(position) {
         console.log("inside track 6!")
     	playAudio(songs.track6);
     	alert('You found Track 6!');
-    	/*
     	$('#route6').show();
         $('#route1').hide();
 		$('#route2').hide();
         $('#route3').hide();
         $('#route4').hide();
         $('#route5').hide();
-        */
+        
     }  
     
 }
